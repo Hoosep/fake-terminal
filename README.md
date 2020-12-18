@@ -2,7 +2,8 @@
 This is a fake terminal where you can run some basic commands.
 
 ## Table of contents
-
+* [Website](#website)
+* [Install in your smartphone / computer](#install)
 * [Commands](#commands)
   * [help](#help)
   * [clear](#clear)
@@ -19,6 +20,15 @@ This is a fake terminal where you can run some basic commands.
 <p align="center">
   <img src="https://cdn4.iconfinder.com/data/icons/small-n-flat/24/terminal-512.png" width="128" height="128 /">
 </p>
+
+## Website
+El sitio web es responsivo y puedes acceder a través de <https://hoosep.github.io/fake-terminal/>. 
+
+## Install
+Fake Terminal es una aplicación web progresiva, lo que quiere decir que está destinada a funcionar en cualquier plataforma que use un navegador compatible.
+
+Cuando accedes por la web a través del smartphone, te aparecera un pequeño popover que te indicará que agregues Fake terminal a tu pantalla principal (si tu navegador es compatible).
+Si accedes a través de un navegador, en la barra de direcciones en la parte derecha, verás un icono (+) que te permitirá instalar Fake Terminal simulando aplicación de escritorio.
 
 ## Commands
 ### help
