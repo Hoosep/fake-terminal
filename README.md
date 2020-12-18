@@ -4,6 +4,7 @@ This is a fake terminal where you can run some basic commands.
 ## Table of contents
 * [Website](#website)
 * [Install in your smartphone / computer](#install)
+* [Store data](#StoreData)
 * [Commands](#commands)
   * [help](#help)
   * [clear](#clear)
@@ -29,6 +30,9 @@ Fake Terminal es una aplicación web progresiva, lo que quiere decir que está d
 
 Cuando accedes por la web a través del smartphone, te aparecera un pequeño popover que te indicará que agregues Fake terminal a tu pantalla principal (si tu navegador es compatible).
 Si accedes a través de un navegador, en la barra de direcciones en la parte derecha, verás un icono (+) que te permitirá instalar Fake Terminal simulando aplicación de escritorio.
+
+## StoreData
+Fake terminal usa IndexedDB para almacenar la información de tu terminal en tu navegador.
 
 ## Commands
 ### help

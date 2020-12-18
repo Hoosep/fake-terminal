@@ -122,8 +122,6 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
         if (typeof folder === 'undefined') {
           cb(null);
         } else if (str) {
-          let items = [];
-          
           (async () => {
             let folders = await db.folders.where('folderId').equals(folder.id).toArray((folders) => {
               return folders;
@@ -153,37 +151,9 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
                 };
               }
             }));
+
             cb([...newFolders, ...newFiles]);
           })();
-
-          /* db.folders.where('folderId').equals(folder.id).toArray((folders) => {
-            db.files.where('folderId').equals(folder.id).toArray((files) => {
-              folders.map(folder => {
-                const { inodeID } = folder;
-                if(inodeID){
-                  db.inodesList.where('id').equals(inodeID).first(ino => {
-                    items.push({
-                      item: folder,
-                      ino
-                    });
-                    cb([...items]);
-                  });
-                }
-              })
-              files.map(file => {
-                const { inodeID } = file;
-                if(inodeID){
-                  db.inodesList.where('id').equals(inodeID).first(ino => {
-                    items.push({
-                      item: file,
-                      ino
-                    });
-                    cb([...items]);
-                  });
-                }
-              })
-            });
-          }); */
         } else {
           cb(folder);
         }
@@ -204,17 +174,41 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
   function removeFromFileSystem(path) {
     getContents(path, (item) => {
       if (item !== null) {
+        const { id, inodeID } = item;
         if (path.isDir) {
           if (!item.isBase) {
-            db.folders.delete(item.id);
+            db.files.delete(id).then(file => {
+              db.inodesList.delete(inodeID).then(ino => {
+                db.superBlock.get(1).then(superBlock => {
+                  const { blockSize, freeInodes } = superBlock;
+                  let addBlockSize = (blockSize - 1024) - 16;
+                  let addFreeInodes = freeInodes + 8;
+                  db.superBlock.update(1, {
+                    blockSize: addBlockSize,
+                    freeInodes: addFreeInodes
+                  });
+                });
+              });
+            });
           }
         } else {
-          db.files.delete(item.id);
+          db.files.delete(id).then(file => {
+            db.inodesList.delete(inodeID).then(ino => {
+              db.superBlock.get(1).then(superBlock => {
+                const { blockSize, freeInodes } = superBlock;
+                let addBlockSize = (blockSize - 1024) - 16;
+                let addFreeInodes = freeInodes + 8;
+                db.superBlock.update(1, {
+                  blockSize: addBlockSize,
+                  freeInodes: addFreeInodes
+                });
+              });
+            });
+          });
         }
       }
     });
   }
-
 
   @autobind
   class PseudoFileSystem extends PluginBase {
@@ -522,7 +516,7 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
     }
 
     remove(path) {
-      this.validPath(path, (valid) => {
+      this.isValidPath(path, (valid) => {
         if (valid) {
           removeFromFileSystem(path);
         }
@@ -534,7 +528,10 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
         method: (args) => {
           if (args._.length > 0) {
             const path = this.parsePath(args._.join(' ').trim());
-            this.validPath(path, (valid) => {
+            console.log("path", path);
+            this.isValidPath(path, (valid) => {
+
+            console.log("valid", valid);
               if (valid) {
                 if (path.isDir) {
                   this.getContents(path, (contents) => {
@@ -543,11 +540,12 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
                     } else if (contents.length > 0 && !args.force) {
                       this.api.printLine(`${toStringPath(path)} is not empty`);
                     } else {
+                      console.log("hola");
                       //this.remove(path);
                     }
                   }, DIR, true);
                 } else {
-                  //this.remove(path);
+                  this.remove(path);
                 }
               }
             });
@@ -713,7 +711,6 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
                     )}
                     <span>
                       {contents.map((item) => {
-                        let keyID = 0;
                         const { path, fullPath } = item.item;
                         const { owner, type, id } = item.ino;
 
@@ -730,10 +727,8 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
                           styles.color = '#2980b9';
                         }
                         
-
-                        keyID = keyID + 1;
                         return (
-                          <span key={keyID}
+                          <span
                           style={styles}
                           title={type.toUpperCase()}
                           key={`${fullPath}-${type}`}>
