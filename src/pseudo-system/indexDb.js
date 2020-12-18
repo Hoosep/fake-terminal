@@ -177,7 +177,7 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
         const { id, inodeID } = item;
         if (path.isDir) {
           if (!item.isBase) {
-            db.files.delete(id).then(file => {
+            db.folder.delete(id).then(folder => {
               db.inodesList.delete(inodeID).then(ino => {
                 db.superBlock.get(1).then(superBlock => {
                   const { blockSize, freeInodes } = superBlock;
@@ -414,7 +414,7 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
           );
 
           this.getSuperBlockContent(data => {
-            const { blockSize, fileSysSize, freeBlocks,
+            const { blockSize, fileSysSize,
                     freeInodes, inodeListSize } = data;
             const column = {
               width: 'calc(50% - 5px)',
@@ -428,15 +428,6 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
               <Fragment>
                 <span style={row}>
                   <span style={column}>
-                    Block size
-                  </span>
-                  <span style={column}>
-                    {blockSize}
-                  </span>
-                </span>
-
-                <span style={row}>
-                  <span style={column}>
                     FileSystem Size
                   </span>
                   <span style={column}>
@@ -446,10 +437,10 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
 
                 <span style={row}>
                   <span style={column}>
-                    Inode List Size
+                    Block size
                   </span>
                   <span style={column}>
-                    {inodeListSize}
+                    {blockSize}
                   </span>
                 </span>
 
@@ -458,7 +449,16 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
                     Free blocks
                   </span>
                   <span style={column}>
-                    {freeBlocks}
+                    {(fileSysSize - blockSize)}
+                  </span>
+                </span>
+
+                <span style={row}>
+                  <span style={column}>
+                    Inode List Size
+                  </span>
+                  <span style={column}>
+                    {inodeListSize}
                   </span>
                 </span>
 
@@ -517,6 +517,7 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
 
     remove(path) {
       this.isValidPath(path, (valid) => {
+
         if (valid) {
           removeFromFileSystem(path);
         }
@@ -528,10 +529,8 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
         method: (args) => {
           if (args._.length > 0) {
             const path = this.parsePath(args._.join(' ').trim());
-            console.log("path", path);
             this.isValidPath(path, (valid) => {
 
-            console.log("valid", valid);
               if (valid) {
                 if (path.isDir) {
                   this.getContents(path, (contents) => {
@@ -540,8 +539,7 @@ export default function configPlugin(pathSeporator = '/', clearDbOnStart = false
                     } else if (contents.length > 0 && !args.force) {
                       this.api.printLine(`${toStringPath(path)} is not empty`);
                     } else {
-                      console.log("hola");
-                      //this.remove(path);
+                      this.remove(path);
                     }
                   }, DIR, true);
                 } else {
