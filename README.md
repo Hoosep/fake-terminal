@@ -21,7 +21,6 @@ This is a fake terminal where you can run some basic commands.
 </p>
 
 ## Commands
-----
 ### help
 Muestra todos los comandos disponibles.
 ### clear
